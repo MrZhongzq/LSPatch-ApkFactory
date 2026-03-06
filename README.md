@@ -38,3 +38,4 @@
 | 扫描全能王 | CamScanner | vivo应用商店 | latest |
 | 哔哩哔哩 | Bilibili | vivo应用商店 | latest |
 | YouTube | YouTube | APKPure | latest |
+| 番茄免费小说 | TomatoReading | vivo应用商店 | latest |

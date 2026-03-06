@@ -97,6 +97,14 @@
         "value": "com.google.android.youtube",
         "version": "latest"
       }
+    },
+    {
+      "nickname": "TomatoReading",
+      "type": "direct",
+      "data": {
+        "name": "vivo",
+        "value": "2801778"
+      }
     }
   ]
 }
