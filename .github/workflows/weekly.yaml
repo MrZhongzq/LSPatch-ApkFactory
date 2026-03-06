@@ -1,0 +1,23 @@
+name: Weekly Auto Build
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每周一 UTC 01:00（大约等于北京时间周一 09:00）
+    - cron: "0 1 * * 1"
+
+concurrency:
+  group: weekly-auto-build
+  cancel-in-progress: false
+
+jobs:
+  build-weekly:
+    secrets: inherit
+    name: Build Weekly (Release)
+    uses: ./.github/workflows/core.yaml
+    with:
+      tasklist-filepath: "./task-list.json"
+      is-release: true
