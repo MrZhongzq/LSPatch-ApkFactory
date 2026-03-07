@@ -44,7 +44,9 @@ jobs:
           distribution: "liberica"
 
       - name: "Download Apk (from APKMirror)"
+        id: "download-apkmirror"
         if: ${{ matrix.type == 'apkmirror' }}
+        continue-on-error: true
         uses: "Kingsman44/gh-apkmirror-dl@v2.0"
         with:
           org: '${{ matrix.data.org }}'
@@ -53,7 +55,9 @@ jobs:
           filename: 'temp.apk'
 
       - name: "Download Apk (from WanDouJia)"
+        id: "download-wandoujia"
         if: ${{ matrix.type == 'wandoujia' }}
+        continue-on-error: true
         run: |
           # 点我展开
           if [[ ${{matrix.data.history_id_num == '' }} ]]; then
@@ -68,7 +72,9 @@ jobs:
           wget -O "temp.apk" $url
 
       - name: "Download Apk (from Direct)"
+        id: "download-direct"
         if: ${{ matrix.type == 'direct' }}
+        continue-on-error: true
         run: |
           # 点我展开
           echo "文件来源 ${{ matrix.data.source }}"
@@ -78,17 +84,36 @@ jobs:
             *) dl_url="${{ matrix.data.value }}" ;;
           esac
           aria2c --out "temp.apk" $dl_url
+          if [ ! -f temp.apk ] || [ ! -s temp.apk ]; then
+            echo "::warning::Download failed for ${{ matrix.nickname }}, skipping"
+            exit 1
+          fi
+
+      - name: "Check Download"
+        id: "check-download"
+        run: |
+          if [ -f temp.apk ] && [ -s temp.apk ]; then
+            echo "downloaded=true" >> $GITHUB_OUTPUT
+            echo "✅ APK downloaded successfully"
+          else
+            echo "downloaded=false" >> $GITHUB_OUTPUT
+            echo "::warning::⚠️ Download failed for ${{ matrix.nickname }}, skipping patching"
+          fi
 
       - name: "Get Apk Info"
         id: "apk-info"
+        if: steps.check-download.outputs.downloaded == 'true'
         uses: "8Mi-Tech/get-apk-info-action@master"
         with:
           apkPath: "temp.apk"
         # 版本号：${{ steps.apk-info.outputs.versionNum }}
       - name: "Install Artifact Handle"
+        if: steps.check-download.outputs.downloaded == 'true'
         uses: "lhotari/gh-actions-artifact-client@v2"
 
       - name: "Patch LSPatch Lib to Apk (include fork)"
+        if: steps.check-download.outputs.downloaded == 'true'
+        continue-on-error: true
         run: |
           # 点我展开
           new_filename="${{ matrix.nickname }}-${{ steps.apk-info.outputs.versionNum }}"

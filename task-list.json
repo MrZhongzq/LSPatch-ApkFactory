@@ -102,7 +102,7 @@
       "nickname": "TomatoReading",
       "type": "direct",
       "data": {
-        "name": "vivo",
+        "source": "vivo",
         "value": "2801778"
       }
     }
