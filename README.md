@@ -26,7 +26,7 @@
 | :-: | :-: | - | - | :-: | - |
 | LSPatch | 0.6 | [GitHub](https://github.com/LSPosed/LSPatch) | [GitHub](https://github.com/LSPosed/LSPatch/releases/) | ✅ |
 | JM_LSPatch | 0.7 | [GitHub](https://github.com/JingMatrix/LSPatch) | [GitHub](https://github.com/JingMatrix/LSPatch/releases) | ✅ |
-| NPatch | 0.7.4_555 | [GitHub](https://github.com/MrZhongzq/NPatch) | [GitHub](https://github.com/MrZhongzq/NPatch/releases) | ✅ | Android 16修复版, 支持Split APK, 内置GMS重定向 |
+| NPatch | 0.7.4_555 | [GitHub](https://github.com/MrZhongzq/NPatch) | [GitHub](https://github.com/MrZhongzq/NPatch/releases) | ？ | （未测试）Android 16修复版, 支持Split APK, 内置GMS重定向 |
 
 本仓库自动打包的项目
 | 软件名称 | 别名 | 来源 | 版本 |
