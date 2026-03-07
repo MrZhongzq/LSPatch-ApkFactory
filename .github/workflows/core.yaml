@@ -71,8 +71,8 @@ jobs:
         if: ${{ matrix.type == 'direct' }}
         run: |
           # 点我展开
-          echo "文件来源 ${{ matrix.data.name }}"
-          case "${{ matrix.data.name }}" in
+          echo "文件来源 ${{ matrix.data.source }}"
+          case "${{ matrix.data.source }}" in
             vivo) dl_url="https://appstore.vivo.com.cn/appinfo/downloadApkFile-h5appstore?id=${{ matrix.data.value }}" ;;
             apkpure) dl_url="https://d.apkpure.com/b/APK/${{ matrix.data.value }}?version=${{ matrix.data.version }}" ;;
             *) dl_url="${{ matrix.data.value }}" ;;
@@ -84,8 +84,7 @@ jobs:
         uses: "8Mi-Tech/get-apk-info-action@master"
         with:
           apkPath: "temp.apk"
-        # 版本号：${{steps.apk-info.outputs.versionNum}}
-
+        # 版本号：${{ steps.apk-info.outputs.versionNum }}
       - name: "Install Artifact Handle"
         uses: "lhotari/gh-actions-artifact-client@v2"
 
@@ -95,9 +94,18 @@ jobs:
           new_filename="${{ matrix.nickname }}-${{ steps.apk-info.outputs.versionNum }}"
           cp temp.apk $new_filename.apk
 
+          # Check if this is a Google app (for NPatch GMS redirect)
+          PKG_NAME="${{ steps.apk-info.outputs.applicationId }}"
+          IS_GOOGLE_APP=false
+          case "$PKG_NAME" in
+            com.google.android.*) IS_GOOGLE_APP=true ;;
+            com.google.*.android.*) IS_GOOGLE_APP=true ;;
+          esac
+          echo "Package: $PKG_NAME, IsGoogleApp: $IS_GOOGLE_APP"
+
           make_lspatch_apk() {
             echo "::group:: 点我展开 当前步骤为通过 $1 打包"
-            java -jar $1.jar -v --manager -l 2 -o "$1" $new_filename.apk
+            java -jar patcher/$1.jar -v --manager -l 2 -o "$1" $new_filename.apk
             (
               cd $1
               mv -v $(ls) $new_filename-$1.apk
@@ -106,9 +114,25 @@ jobs:
             echo "::endgroup::"
           }
 
+          make_npatch_apk() {
+            echo "::group:: 点我展开 当前步骤为通过 npatch 打包"
+            EXTRA_ARGS="--injectdex --provider"
+            if [ "$IS_GOOGLE_APP" = "true" ]; then
+              EXTRA_ARGS="$EXTRA_ARGS --useNPatchGms"
+              echo "Google app detected: enabling NPatch GMS redirect"
+            fi
+            java -jar patcher/npatch.jar -v --manager -l 2 --outputLog $EXTRA_ARGS -o "npatch" $new_filename.apk
+            (
+              cd npatch
+              mv -v $(ls) $new_filename-npatch.apk
+              zip -q - "$(ls)" | gh-actions-artifact-client.js upload "$(ls)"
+            )
+            echo "::endgroup::"
+          }
+
           make_lspatch_apk lspatch
           make_lspatch_apk jm-lspatch
-          make_lspatch_apk npatch
+          make_npatch_apk
 
   job_release:
     needs: "job-patch"
